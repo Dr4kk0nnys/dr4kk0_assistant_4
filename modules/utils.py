@@ -50,6 +50,7 @@ def math_module(number1, number2, operation):
 
 
 def web_module(data, provider):
+    # web_module doesn't search anything, it just returns the full url
 
     if (provider == 'Google'):
         search_term = sanitize_data(data, '%20')
@@ -61,5 +62,5 @@ def web_module(data, provider):
 
         URL = 'https://en.wikipedia.org/wiki/'
 
-    # web_module doesn't search anything, it just returns the full url
-    return URL + search_term
+    silent_output = " </dev/null >/dev/null 2>&1"
+    return URL + search_term + silent_output
