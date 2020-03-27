@@ -1,15 +1,17 @@
 from os import system as terminal_command
+from googletrans import Translator
 
 from modules.utils import sanitize_data, web_module, math_module, get_time
 from modules.database import Database
-from googletrans import Translator
 
 
 def handle_input(main_command='exit', commands=[]):
 
+    # -> exit
     if (main_command == 'exit'):
         return False
 
+    # ->
     elif (main_command == ''):
         # user only pressed enter, ... avoiding slowness
         pass
@@ -17,11 +19,15 @@ def handle_input(main_command='exit', commands=[]):
     # -> echo hello world
     elif (main_command == 'echo'):
         # modules/utils/sanitize_data -> return's formated data
-        print(sanitize_data(commands, ' '))
+        sanitized = sanitize_data(commands, ' ')
+
+        handle_response(sanitized, 200)
 
     # -> cl
     elif (main_command == 'cl'):
-        terminal_command('clear')
+        command = 'clear'
+
+        handle_response(command, 201)
 
     # -> math 10 - 9
     elif (main_command == 'math'):
@@ -37,22 +43,30 @@ def handle_input(main_command='exit', commands=[]):
             # math_module return False, if unable to perform the operation
             # but python also considers 0 as false
             if (type(result) == float):
-                print(f'{number1} {operation} {number2} = {result}')
+
+                equation = f'{number1} {operation} {number2} = {result}'
+
+                handle_response(equation, 200)
             else:
-                print('Incorrect use!')
+                pass
+
         else:
-            print('Incorrect use')
+            handle_response('', 404)
 
     # -> search Horses runnig free
     elif (main_command == 'search'):
 
         # modules/utils/web_module return a string with the full URL
         url = web_module(commands, 'Google')
-        terminal_command('brave-browser ' + url)
+        search_querry = f'brave-browser {url}'
+
+        handle_response(search_querry, 201)
 
     elif (main_command == 'wikipedia'):
         url = web_module(commands, 'Wikipedia')
-        terminal_command('brave-browser ' + url)
+        search_querry = f'brave-browser {url}'
+
+        handle_response(search_querry, 201)
 
     # -> translate Hola! Como estas ?
     elif (main_command == 'translate'):
@@ -62,7 +76,7 @@ def handle_input(main_command='exit', commands=[]):
         # google translate library
         translated = Translator().translate(to_translate, dest='en').text
 
-        print(translated)
+        handle_response(translated, 200)
 
     # modules/database ->
     elif (main_command == 'database'):
@@ -79,16 +93,19 @@ def handle_input(main_command='exit', commands=[]):
             # database.read returns all the lines from the database
             lines = database.read()
 
+            querry = ''
             for i in range(len(lines)):
-                print(f'Index {i}: {lines[i]}', end='')
+                querry += f'Index {i}: {lines[i]}'
+
+            # not using handle_response, since it needs end=''
+            print(querry, end='')
 
         elif (main_database_command == 'add'):
             to_add = sanitize_data(commands[1:], ' ')
 
             # avoiding bad usage
             if (to_add == ''):
-                print('Unable to add')
-                pass
+                handle_response('', 404)
             else:
                 database.write(to_add)
 
@@ -99,8 +116,7 @@ def handle_input(main_command='exit', commands=[]):
 
                 database.delete(index)
             else:
-                print('Unable to remove')
-                pass
+                handle_response('', 404)
 
         elif (main_database_command == 'update'):
             to_add = ''
@@ -113,13 +129,28 @@ def handle_input(main_command='exit', commands=[]):
                         to_add += ' '
 
             if (to_add == ''):
-                print('Unable to add')
                 pass
             else:
-                index = int(commands[2])
-                database.update(index, to_add)
-
+                try:
+                    index = int(commands[2])
+                    database.update(index, to_add)
+                except:
+                    handle_response('', 404)
         else:
-            print('Not a command!')
+            handle_response('', 404)
 
     return
+
+
+# not the handle_input responsability to handle the response
+# with either print, or error
+def handle_response(data, status_id):
+
+    if (status_id == 200):
+        print(data)
+
+    elif (status_id == 201):
+        terminal_command(data)
+
+    elif (status_id == 404):
+        print('Command not found!')
