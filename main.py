@@ -6,11 +6,12 @@ class Assistant:
 
     def __init__(self):
 
-        # modules/utils/get_time -> returns the actual time, already condensed
-        print(get_time())
+        # modules/utils/get_time -> returns the actual time, already formated
+        time = get_time()
+        print(time)
 
         # the whole program operation
-        self.start_loop()
+        self.main_loop()
 
     # get_input will only take the user's input
     # it doesn't handle it
@@ -28,12 +29,17 @@ class Assistant:
         # returns a tuple
         return (command, commands)
 
-    def start_loop(self):
+    def main_loop(self):
 
+        # the program will run, until the user exit it
         while (True):
+            # get_input retuns a tuple
             main_command, commands = self.get_input()
+
+            # which then returns a response, already formated
             response = handle_input(main_command, commands)
 
+            # the response retuns False, if an exception is raised, or if the program ends
             if (response == False):
                 break
 

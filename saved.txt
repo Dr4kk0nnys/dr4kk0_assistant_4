@@ -1,0 +1,212 @@
+from modules.interpreter import handle_input
+from modules.utils import get_time
+
+
+class Assistant:
+
+    def __init__(self):
+
+        # modules/utils/get_time -> returns the actual time, already condensed
+        print(get_time())
+
+        # the whole program operation
+        self.start_loop()
+
+    # get_input will only take the user's input
+    # it doesn't handle it
+    def get_input(self):
+
+        # takes the raw user input
+        user_input = input('$ ')
+
+        # all the commands, with parameters, and etc ...
+        commands = user_input.split(' ')
+
+        # the main command, for identification purpouses
+        command = commands[0]
+
+        # returns a tuple
+        return (command, commands)
+
+    def start_loop(self):
+
+        while (True):
+            main_command, commands = self.get_input()
+            response = handle_input(main_command, commands)
+
+            if (response == False):
+                break
+
+
+if __name__ == '__main__':
+    Assistant()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from os import system as terminal_command
+from googletrans import Translator
+
+from modules.utils import sanitize_data, web_module, math_module, get_time
+from modules.database import Database
+
+
+def handle_input(main_command='exit', commands=[]):
+
+    # -> exit
+    if (main_command == 'exit'):
+        return False
+
+    # ->
+    elif (main_command == ''):
+        # user only pressed enter, ... avoiding slowness
+        pass
+
+    # -> echo hello world
+    elif (main_command == 'echo'):
+        # modules/utils/sanitize_data -> return's formated data
+        sanitized = sanitize_data(commands, ' ')
+
+        handle_response(sanitized, 200)
+
+    # -> cl
+    elif (main_command == 'cl'):
+        command = 'clear'
+
+        handle_response(command, 201)
+
+    # -> math 10 - 9
+    elif (main_command == 'math'):
+
+        if (len(commands) >= 4):
+
+            number1 = commands[1]
+            number2 = commands[3]
+            operation = commands[2]
+
+            result = math_module(number1, number2, operation)
+
+            # math_module return False, if unable to perform the operation
+            # but python also considers 0 as false
+            if (type(result) == float):
+
+                equation = f'{number1} {operation} {number2} = {result}'
+
+                handle_response(equation, 200)
+            else:
+                pass
+
+        else:
+            handle_response('', 404)
+
+    # -> search Horses runnig free
+    elif (main_command == 'search'):
+
+        # modules/utils/web_module return a string with the full URL
+        url = web_module(commands, 'Google')
+        search_querry = f'brave-browser {url}'
+
+        handle_response(search_querry, 201)
+
+    elif (main_command == 'wikipedia'):
+        url = web_module(commands, 'Wikipedia')
+        search_querry = f'brave-browser {url}'
+
+        handle_response(search_querry, 201)
+
+    # -> translate Hola! Como estas ?
+    elif (main_command == 'translate'):
+
+        to_translate = sanitize_data(commands, ' ')
+
+        # google translate library
+        translated = Translator().translate(to_translate, dest='en').text
+
+        handle_response(translated, 200)
+
+    # modules/database ->
+    elif (main_command == 'database'):
+
+        # initializes the class, with the name of the database as a parameter
+        database = Database('database.txt')
+        # possible to have multiple databases
+
+        # commands[0] == 'database'
+        # commands[1] == 'read/add/delete'
+        main_database_command = commands[1]
+
+        if (main_database_command == 'read'):
+            # database.read returns all the lines from the database
+            lines = database.read()
+
+            querry = ''
+            for i in range(len(lines)):
+                querry += f'Index {i}: {lines[i]}'
+
+            # not using handle_response, since it needs end=''
+            print(querry, end='')
+
+        elif (main_database_command == 'add'):
+            to_add = sanitize_data(commands[1:], ' ')
+
+            # avoiding bad usage
+            if (to_add == ''):
+                handle_response('', 404)
+            else:
+                database.write(to_add)
+
+        elif (main_database_command == 'remove'):
+            if (len(commands) > 2):
+                # database.delete needs the index of the item to remove
+                index = int(commands[2])
+
+                database.delete(index)
+            else:
+                handle_response('', 404)
+
+        elif (main_database_command == 'update'):
+            to_add = ''
+
+            for i in range(len(commands)):
+                if (i > 2):
+                    to_add += commands[i]
+
+                    if (i < len(commands) - 1):
+                        to_add += ' '
+
+            if (to_add == ''):
+                pass
+            else:
+                try:
+                    index = int(commands[2])
+                    database.update(index, to_add)
+                except:
+                    handle_response('', 404)
+        else:
+            handle_response('', 404)
+
+    return
+
+
+# not the handle_input responsability to handle the response
+# with either print, or error
+def handle_response(data, status_id):
+
+    if (status_id == 200):
+        print(data)
+
+    elif (status_id == 201):
+        terminal_command(data)
+
+    elif (status_id == 404):
+        print('Command not found!')
