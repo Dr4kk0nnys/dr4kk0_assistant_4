@@ -62,6 +62,7 @@ def handle_input(main_command='exit', commands=[]):
 
         handle_response(search_querry, 201)
 
+    # -> wikipedia Elon Musk
     elif (main_command == 'wikipedia'):
         url = web_module(commands, 'Wikipedia')
         search_querry = f'brave-browser {url}'
@@ -142,7 +143,7 @@ def handle_input(main_command='exit', commands=[]):
     return
 
 
-# not the handle_input responsability to handle the response
+# it is the handle_response responsability to handle the response
 # with either print, or error
 def handle_response(data, status_id):
 
